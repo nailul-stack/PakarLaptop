@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id" data-type="software">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="page-type" content="software"><meta name="site-kind" content="software">
+<title>PakarLaptop: rekomendasi laptop mahasiswa</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='11' fill='%230B6B5D'/%3E%3Crect x='11' y='12' width='26' height='18' rx='4' fill='none' stroke='white' stroke-width='3'/%3E%3Cpath d='M7 36h34' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M18 21l4 4 7-8' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+<header><a class="brand" href="#beranda" aria-label="PakarLaptop, ke atas"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="24" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M2 38h44l-3 3.5a3 3 0 0 1-2.2 1H7.2a3 3 0 0 1-2.2-1z" fill="currentColor"/><path d="M17 21.5l5 5 9-10" fill="none" stroke="var(--accent)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Pakar<em>Laptop</em></span></a><nav aria-label="Navigasi"><a href="#beranda">Beranda</a><a href="#laptop">Daftar laptop</a><a href="#tentang">Tentang</a><a href="#admin">Admin</a></nav></header>
+
+<main>
+<div class="view on" id="v-beranda">
+<div class="hero">
+ <div>
+  <p class="eyebrow" data-enter style="--i:0">Panduan untuk mahasiswa</p>
+  <h1 data-enter style="--i:1">Temukan laptop yang pas untuk kuliahmu.</h1>
+  <p class="lead" data-enter style="--i:2">Jawab enam pertanyaan singkat tentang anggaran dan kebutuhanmu. Rekomendasi tipe dan laptop yang cocok langsung tampil di halaman ini, tanpa pindah ke halaman lain.</p>
+  <div class="row" data-enter style="--i:3"><a class="btn" href="#cek">Mulai cari laptop</a><a class="btn ghost" href="#tipe">Lihat tipe laptop</a></div>
+ </div>
+ <div data-enter style="--i:4" id="viz"></div>
+</div>
+
+<section id="cek">
+ <p class="eyebrow">Cari laptop</p>
+ <h2>Ceritakan kebutuhanmu</h2>
+ <p class="sub">Semua pertanyaan wajib diisi. Begitu lengkap, rekomendasi dan laptop yang cocok langsung muncul di panel hasil.</p>
+ <div class="cek">
+  <div class="card">
+   <fieldset id="f-b"><label class="lab" for="rp">Anggaran</label>
+    <p class="hint">Rendah di bawah Rp 6 juta, sedang Rp 6 sampai 12 juta, tinggi di atas Rp 12 juta.</p>
+    <div class="rp"><b>Rp</b><input id="rp" type="text" inputmode="numeric" autocomplete="off" placeholder="8.000.000" aria-describedby="err-b"></div>
+    <span class="lvl" id="lvl"></span><p class="err" id="err-b" role="alert"></p></fieldset>
+   <div id="fields"></div>
+   <button class="btn" id="go" type="button">Lihat rekomendasi</button>
+  </div>
+  <div class="card res" id="out" aria-live="polite"><p class="eyebrow">Hasil</p><h3>Belum ada hasil</h3><p class="empty">Isi anggaran dan semua pertanyaan. Rekomendasi tipe beserta laptop yang sesuai akan langsung tampil di sini.</p></div>
+ </div>
+</section>
+
+<section id="tipe">
+ <p class="eyebrow">Tipe laptop</p>
+ <h2>Empat tipe untuk kebutuhan kuliah</h2>
+ <p class="sub">Setiap tipe punya spesifikasi acuan yang bisa kamu bawa saat membandingkan produk di toko.</p>
+ <div class="types" id="types"></div>
+ <p class="src">Spesifikasi bersifat acuan awal. Harga dan model di pasaran berubah, jadi cocokkan lagi dengan produk terbaru sebelum membeli.</p>
+</section>
+
+
+</div>
+<div class="view" id="v-laptop"><section>
+ <p class="eyebrow">Daftar laptop</p><h2>Laptop untuk mahasiswa</h2>
+ <p class="sub">Telusuri seluruh data laptop dari CSV, lalu bandingkan spesifikasinya.</p>
+ <div class="tools"><input id="q" type="search" placeholder="Cari nama atau merek" aria-label="Cari laptop"><select id="sort" aria-label="Urutkan"><option value="asc">Harga terendah</option><option value="desc">Harga tertinggi</option></select><select id="brand" aria-label="Merek"></select></div>
+ <div class="opts" id="catf" role="radiogroup" aria-label="Filter tipe"></div>
+ <p class="hint" id="cnt" style="margin-top:12px" aria-live="polite"></p>
+ <div class="lgrid" id="lgrid" aria-live="polite"></div>
+ <div class="row" style="justify-content:center;margin-top:20px"><button class="btn ghost" id="more" type="button">Tampilkan lebih banyak</button></div>
+ <p class="src" id="srcinfo"></p>
+</section></div>
+<div class="view" id="v-tentang"><section>
+ <p class="eyebrow">Tentang</p><h2>Kenapa PakarLaptop dibuat</h2>
+ <p class="sub">Laptop menopang hampir semua kegiatan kuliah, dan memilihnya tidak semudah kelihatannya.</p>
+ <div class="about">
+  <div class="card"><h3>Latar belakang</h3><p>Mahasiswa memakai laptop untuk tugas, laporan, pemrograman, olah data, dan kelas daring. Pilihannya banyak, dengan spesifikasi, ukuran, dan harga yang berbeda-beda. Banyak mahasiswa akhirnya memilih berdasarkan merek atau popularitas.</p></div>
+  <div class="card"><h3>Masalahnya</h3><p>Laptop yang salah pilih punya dua akibat: ia tidak sanggup menjalankan kebutuhan kuliah, atau pemiliknya membayar lebih mahal dari yang ia perlukan. Keputusan seharusnya bertumpu pada kebutuhan dan anggaran.</p></div>
+  <div class="card"><h3>Tujuan</h3><p>PakarLaptop membantu mahasiswa mempersempit pilihan. Kamu mengisi anggaran dan kebutuhanmu, lalu situs menyarankan tipe laptop yang sesuai beserta model konkret dari dataset.</p></div>
+ </div>
+ <p class="src">Rekomendasi dihitung dengan aturan IF-THEN (forward chaining) dan skor kecocokan terhadap data laptop yang tersimpan dalam CSV. Hasilnya panduan awal sebelum membeli, bukan penentu pembelian. Harga dan spesifikasi di pasaran berubah, jadi periksa lagi produk terbaru. PakarLaptop dikembangkan oleh Kelompok 7, Program Studi Pendidikan Teknik Informatika dan Komputer, Universitas Negeri Makassar, sebagai proyek Kecerdasan Buatan 2026.</p>
+</section></div>
+<div class="view" id="v-admin"><section>
+ <p class="eyebrow">Admin</p><h2>Kelola data laptop</h2>
+ <p class="sub">Sumber data utama adalah CSV. Perubahan di halaman ini disimpan di peramban ini dan dapat diunduh kembali sebagai berkas CSV.</p>
+ <p class="hint" id="srcmode"></p>
+ <div class="card">
+  <h3 id="ft">Tambah laptop</h3><div class="fg" id="fg"></div>
+  <div class="row"><button class="btn" id="save" type="button">Simpan</button><button class="btn ghost" id="reset" type="button">Kosongkan</button><button class="btn ghost" id="export" type="button">Unduh CSV</button><button class="btn ghost" id="wipe" type="button">Atur ulang data lokal</button></div>
+  <p class="err" id="aerr" role="alert"></p><p class="hint" id="aok" aria-live="polite"></p>
+ </div>
+ <h4 style="margin-top:28px">Semua laptop</h4><div class="tools"><input id="aq" type="search" placeholder="Cari laptop untuk diubah atau dihapus" aria-label="Cari laptop"></div>
+ <div class="tw"><table style="min-width:520px"><thead><tr><th>Nama</th><th>Tipe</th><th>Harga</th><th></th></tr></thead><tbody id="at"></tbody></table></div><p class="hint" id="amore" style="margin-top:8px"></p>
+</section></div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="footer-brand"><svg viewBox="0 0 48 48" aria-hidden="true" style="width:28px;height:28px;vertical-align:middle;margin-right:6px"><rect x="7" y="9" width="34" height="24" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M2 38h44l-3 3.5a3 3 0 0 1-2.2 1H7.2a3 3 0 0 1-2.2-1z" fill="currentColor"/><path d="M17 21.5l5 5 9-10" fill="none" stroke="var(--accent)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Pakar<em>Laptop</em></strong></div>
+      <p class="footer-desc">Sistem pakar berbasis web dengan metode <em>Forward Chaining</em> untuk membantu mahasiswa menentukan rekomendasi tipe dan spesifikasi laptop yang paling sesuai kebutuhan perkuliahan dan anggaran.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigasi</h4>
+      <ul class="footer-links">
+        <li><a href="#beranda">Beranda</a></li>
+        <li><a href="#cek">Cari Rekomendasi</a></li>
+        <li><a href="#tipe">Tipe Laptop</a></li>
+        <li><a href="#laptop">Daftar & Spesifikasi Laptop</a></li>
+        <li><a href="#tentang">Tentang Sistem</a></li>
+        <li><a href="#admin">Panel Admin</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Pengembang Proyek</h4>
+      <p class="footer-info"><strong>Kelompok 7</strong><br>Pendidikan Teknik Informatika & Komputer (PTIK)<br>Universitas Negeri Makassar<br>Proyek UAS Mata Kuliah Kecerdasan Buatan 2026</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 PakarLaptop · Dikembangkan untuk keperluan akademis UAS Kecerdasan Buatan.</p>
+    <p class="footer-disclaimer">Rekomendasi bersifat panduan awal berdasarkan dataset referensi, bukan penentu mutlak pembelian.</p>
+  </div>
+</footer>
+</div>
+
+<script type="text/csv" id="csv-data">No,Merk,Model/Seri,Prosesor,RAM (GB),Storage (GB),Kartu Grafis,Kategori Kebutuhan,Harga (Rp)
+1,Advan,WorkMate 14,Intel Processor N100,8,256,Intel UHD Graphics,Laptop Dasar,Rp3.199.000
+2,Zyrex,Kintamani,AMD A4-9125,4,128,AMD Radeon R3,Laptop Dasar,Rp3.050.000
+3,Axioo,MyBook Hype 1,Intel Celeron N4020,4,128,Intel UHD Graphics 600,Laptop Dasar,Rp3.099.000
+4,Advan,TBook 14,Intel Processor N100,8,256,Intel UHD Graphics,Laptop Dasar,Rp3.350.000
+5,Zyrex,Ultra N100,Intel Processor N100,8,256,Intel UHD Graphics,Laptop Dasar,Rp3.450.000
+6,Axioo,Hype 3,Intel Core i3-1005G1,8,256,Intel UHD Graphics,Laptop Dasar,Rp3.799.000
+7,Zyrex,D-TECH 14,AMD Ryzen 3 3250U,8,256,AMD Radeon Graphics,Laptop Dasar,Rp3.899.000
+8,Lenovo,IdeaPad 1 14IGL7,Intel Celeron N4020,4,256,Intel UHD Graphics 600,Laptop Dasar,Rp3.999.000
+9,ASUS,Vivobook Go 14 E410KA,Intel Celeron N4500,4,256,Intel UHD Graphics,Laptop Dasar,Rp4.150.000
+10,Acer,Aspire 3 Slim A314-35,Intel Celeron N5100,4,256,Intel UHD Graphics,Laptop Dasar,Rp4.299.000
+11,HP,14s-dq0508TU,Intel Celeron N4120,4,256,Intel UHD Graphics 600,Laptop Dasar,Rp4.350.000
+12,Infinix,INBook Y1 Plus,Intel Core i3-1005G1,8,256,Intel UHD Graphics,Laptop Dasar,Rp4.499.000
+13,Xiaomi,RedmiBook 15,Intel Core i3-1115G4,8,256,Intel UHD Graphics,Laptop Dasar,Rp4.599.000
+14,Lenovo,IdeaPad Slim 1 14AMN7,AMD Athlon Silver 7120U,8,256,AMD Radeon 610M,Laptop Dasar,Rp4.699.000
+15,ASUS,Vivobook Go 14 E1404GA,Intel Processor N100,8,256,Intel UHD Graphics,Laptop Dasar,Rp4.850.000
+16,Acer,Aspire Lite AL14-31P,Intel Processor N100,8,256,Intel UHD Graphics,Laptop Dasar,Rp4.899.000
+17,Axioo,Hype 5,Intel Core i5-1035G7,8,512,Intel Iris Plus Graphics,Laptop Dasar,Rp4.999.000
+18,HP,14s-dq3111TU,Intel Celeron N4500,8,256,Intel UHD Graphics,Laptop Dasar,Rp4.950.000
+19,Dell,Inspiron 3525,AMD Athlon Silver 3050U,8,256,AMD Radeon Graphics,Laptop Dasar,Rp4.999.000
+20,Infinix,INBook Y2 Plus,Intel Core i3-1115G4,8,512,Intel UHD Graphics,Laptop Dasar,Rp5.199.000
+21,Acer,Aspire Go 14 AG14-31P,Intel Processor N100,8,512,Intel UHD Graphics,Laptop Dasar,Rp5.299.000
+22,Lenovo,IdeaPad Slim 3 14IAU7,Intel Core i3-1215U,8,256,Intel UHD Graphics,Laptop Dasar,Rp5.499.000
+23,ASUS,Vivobook 14 A1404ZA,Intel Core i3-1215U,8,256,Intel UHD Graphics,Laptop Dasar,Rp5.650.000
+24,HP,14s-fq0562AU,AMD Ryzen 3 5300U,8,512,AMD Radeon Graphics,Laptop Dasar,Rp5.750.000
+25,Acer,Aspire 3 A314-23M,AMD Ryzen 3 7320U,8,512,AMD Radeon 610M,Laptop Dasar,Rp5.899.000
+26,ASUS,Vivobook Go 14 E1404FA,AMD Ryzen 3 7320U,8,512,AMD Radeon 610M,Laptop Dasar,Rp5.999.000
+27,Lenovo,IdeaPad 1 14AMN7-Ryzen3,AMD Ryzen 3 7320U,8,512,AMD Radeon 610M,Laptop Dasar,Rp6.150.000
+28,MSI,Modern 14 C11M,Intel Core i3-1115G4,8,512,Intel UHD Graphics,Laptop Dasar,Rp6.299.000
+29,Dell,Inspiron 14 3420,Intel Core i3-1115G4,8,256,Intel UHD Graphics,Laptop Dasar,Rp6.350.000
+30,HP,14s-dq2614TU,Intel Core i3-1125G4,8,512,Intel UHD Graphics,Laptop Dasar,Rp6.399.000
+31,Axioo,Hype 7 AMD,AMD Ryzen 7 5700U,16,512,AMD Radeon Graphics,Laptop Produktivitas,Rp6.499.000
+32,ASUS,Vivobook Go 15 OLED E1504FA,AMD Ryzen 3 7320U,8,512,AMD Radeon 610M,Laptop Dasar,Rp6.599.000
+33,Lenovo,IdeaPad Slim 3 14IRH8,Intel Core i3-1315U,8,512,Intel UHD Graphics,Laptop Produktivitas,Rp6.799.000
+34,MSI,Modern 14 C12MO,Intel Core i3-1215U,8,512,Intel UHD Graphics,Laptop Produktivitas,Rp6.899.000
+35,Advan,Workplus 14,AMD Ryzen 5 6600H,16,512,AMD Radeon 660M,Laptop Produktivitas,Rp6.999.000
+36,Acer,Aspire Lite AL14-51M,Intel Core i5-1235U,8,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp7.199.000
+37,ASUS,Vivobook 14 A1405ZA,Intel Core i3-1215U,8,512,Intel UHD Graphics,Laptop Produktivitas,Rp7.250.000
+38,HP,14s-em0014AU,AMD Ryzen 5 7520U,8,512,AMD Radeon 610M,Laptop Produktivitas,Rp7.399.000
+39,Lenovo,IdeaPad Slim 3 14ABR8,AMD Ryzen 5 7530U,8,512,AMD Radeon Graphics,Laptop Produktivitas,Rp7.499.000
+40,ASUS,Vivobook Go 14 E1404FA-16GB,AMD Ryzen 5 7520U,16,512,AMD Radeon 610M,Laptop Produktivitas,Rp7.599.000
+41,Acer,Aspire 5 Slim A514-55,Intel Core i5-1235U,8,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp7.799.000
+42,HP,14s-fq1036AU,AMD Ryzen 5 5500U,16,512,AMD Radeon Graphics,Laptop Produktivitas,Rp7.899.000
+43,Infinix,INBook X2 Pro,Intel Core i5-1155G7,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp7.999.000
+44,Lenovo,IdeaPad Slim 3i 14IAU7,Intel Core i5-1235U,8,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp8.150.000
+45,MSI,Modern 14 C12M-i5,Intel Core i5-1235U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp8.299.000
+46,Dell,Vostro 3430,Intel Core i5-1335U,8,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp8.450.000
+47,ASUS,Vivobook 15 A1504ZA,Intel Core i5-1235U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp8.699.000
+48,HP,Pavilion 14-dv2053TU,Intel Core i5-1235U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp8.999.000
+49,Lenovo,ThinkBook 14 G4 IAP,Intel Core i5-1235U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp9.299.000
+50,Acer,Aspire 5 Spin 14 A5SP14,Intel Core i5-1335U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp9.499.000
+51,HP,14s-fq2002AU,AMD Ryzen 7 5825U,16,512,AMD Radeon Graphics,Laptop Produktivitas,Rp9.699.000
+52,Lenovo,IdeaPad Slim 5 14IAH8,Intel Core i5-12450H,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp9.999.000
+53,ASUS,Vivobook 14X M1403QA,AMD Ryzen 5 5600H,16,512,AMD Radeon Graphics,Laptop Produktivitas,Rp10.199.000
+54,Acer,Swift 3 Infinity 4 SF314-511,Intel Core i5-1135G7,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp10.499.000
+55,Lenovo,ThinkPad E14 Gen 4,AMD Ryzen 5 5625U,16,512,AMD Radeon Graphics,Laptop Produktivitas,Rp10.799.000
+56,Dell,Inspiron 14 5430,Intel Core i5-1335U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp10.999.000
+57,HP,Pavilion Aero 13-be2001AU,AMD Ryzen 5 7535U,16,512,AMD Radeon 660M,Laptop Produktivitas,Rp11.299.000
+58,Apple,MacBook Air M1 2020,Apple M1 8-Core,8,256,Apple 7-Core GPU,Laptop Produktivitas,Rp11.499.000
+59,ASUS,Vivobook 16X K3605ZF,Intel Core i5-12450H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp11.299.000
+60,Acer,Aspire 7 Gaming A715-76G,Intel Core i5-12450H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp10.899.000
+61,MSI,Thin GF63 12UCX,Intel Core i5-12450H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp10.499.000
+62,Axioo,Pongo 725,Intel Core i7-12650H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp10.199.000
+63,Lenovo,IdeaPad Gaming 3 15ACH6,AMD Ryzen 5 5500H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp10.799.000
+64,HP,Victus 15-fb0009AX,AMD Ryzen 5 5600H,16,512,AMD Radeon RX 6500M 4GB,Laptop Performa Tinggi,Rp11.199.000
+65,Lenovo,LOQ 15IAX9-RTX2050,Intel Core i5-12450HX,12,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp11.499.000
+66,ASUS,TUF Gaming A15 FA506NF,AMD Ryzen 5 7535HS,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp11.899.000
+67,Acer,Nitro V 15 ANV15-51-RTX2050,Intel Core i5-13420H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp11.999.000
+68,MSI,Bravo 15 C7UDX,AMD Ryzen 5 7535HS,16,512,NVIDIA GeForce RTX 3050 6GB,Laptop Performa Tinggi,Rp12.299.000
+69,ASUS,TUF Gaming F15 FX506HF,Intel Core i5-11400H,16,512,NVIDIA GeForce RTX 2050 4GB,Laptop Performa Tinggi,Rp11.599.000
+70,HP,Victus 15-fa1167TX,Intel Core i5-12450H,16,512,NVIDIA GeForce RTX 3050 6GB,Laptop Performa Tinggi,Rp12.499.000
+71,Lenovo,LOQ 15IAX9-RTX3050,Intel Core i5-12450HX,16,512,NVIDIA GeForce RTX 3050 6GB,Laptop Performa Tinggi,Rp12.799.000
+72,Acer,Nitro V 15 ANV15-51-RTX3050,Intel Core i5-13420H,16,512,NVIDIA GeForce RTX 3050 6GB,Laptop Performa Tinggi,Rp12.999.000
+73,Apple,MacBook Air M1 512GB,Apple M1 8-Core,8,512,Apple 8-Core GPU,Laptop Produktivitas,Rp12.899.000
+74,Acer,Swift Go 14 SFG14-71,Intel Core i5-13500H,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp12.999.000
+75,ASUS,Zenbook 14 OLED UX3402VA,Intel Core i5-13500H,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp13.499.000
+76,Acer,Swift Go 14 AI SFG14-72,Intel Core Ultra 5 125H,16,512,Intel Arc Graphics,Laptop Produktivitas,Rp13.799.000
+77,Lenovo,Yoga Slim 6 14IRH8,Intel Core i5-13500H,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp13.999.000
+78,HP,Pavilion Plus 14-ey0013AU,AMD Ryzen 7 7840U,16,512,AMD Radeon 780M,Laptop Produktivitas,Rp14.299.000
+79,Axioo,Pongo 760 V2,Intel Core i7-13620H,16,512,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp14.499.000
+80,MSI,Cyborg 15 A12VE,Intel Core i5-12450H,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp13.899.000
+81,ASUS,TUF Gaming A15 FA507NU,AMD Ryzen 5 7535HS,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp14.599.000
+82,Acer,Nitro V 15 ANV15-51-RTX4050,Intel Core i5-13420H,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp14.799.000
+83,Apple,MacBook Air M2 2022,Apple M2 8-Core,8,256,Apple 8-Core GPU,Laptop Produktivitas,Rp14.999.000
+84,ASUS,Vivobook S 14 OLED S5406MA,Intel Core Ultra 5 125H,16,1024,Intel Arc Graphics,Laptop Produktivitas,Rp15.499.000
+85,Lenovo,LOQ 15IRX9-RTX4050,Intel Core i5-13450HX,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp15.299.000
+86,HP,Victus 16-r0088TX,Intel Core i5-13500H,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp15.699.000
+87,MSI,Katana 15 B13VEK,Intel Core i7-13620H,16,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp15.999.000
+88,ASUS,TUF Gaming F15 FX507VU,Intel Core i7-13620H,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp16.499.000
+89,ASUS,Vivobook S 15 Copilot+ S5507QA,Snapdragon X Elite X1E-78-100,16,1024,Qualcomm Adreno GPU,Laptop Produktivitas,Rp16.999.000
+90,Lenovo,ThinkPad L14 Gen 4,Intel Core i7-1355U,16,512,Intel Iris Xe Graphics,Laptop Produktivitas,Rp16.799.000
+91,Dell,G15 5530,Intel Core i5-13450HX,16,512,NVIDIA GeForce RTX 3050 6GB,Laptop Performa Tinggi,Rp15.899.000
+92,Acer,Predator Helios Neo 16 PHN16-71,Intel Core i5-13500HX,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp16.999.000
+93,Lenovo,LOQ 15AHP9-RTX4060,AMD Ryzen 7 8845HS,16,512,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp17.499.000
+94,Apple,MacBook Air M2 512GB,Apple M2 8-Core,8,512,Apple 10-Core GPU,Laptop Produktivitas,Rp17.999.000
+95,ASUS,Vivobook S 14 OLED M5406WA,AMD Ryzen AI 9 365,24,1024,AMD Radeon 880M,Laptop Produktivitas,Rp17.999.000
+96,ASUS,ROG Strix G16 G614JU,Intel Core i7-13650HX,16,512,NVIDIA GeForce RTX 4050 6GB,Laptop Performa Tinggi,Rp18.499.000
+97,HP,Omen 16-xf0033AX,AMD Ryzen 7 7840HS,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp18.999.000
+98,Lenovo,Legion Slim 5 16APH8,AMD Ryzen 7 7840HS,16,512,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp19.499.000
+99,Acer,Nitro 16 AN16-41,AMD Ryzen 7 7735HS,16,512,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp19.299.000
+100,MSI,Sword 16 HX B14VFKG,Intel Core i7-14700HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp19.999.000
+101,Acer,Swift X 14 SFX14-71G,Intel Core i7-13700H,16,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Kreatif/Grafis,Rp20.499.000
+102,ASUS,Vivobook Pro 15 OLED K6502VU,Intel Core i9-13900H,16,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Kreatif/Grafis,Rp20.999.000
+103,Lenovo,Legion 5 16IRX9,Intel Core i7-14650HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp21.499.000
+104,HP,Victus 16-r1004TX,Intel Core i7-14700HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp21.999.000
+105,ASUS,TUF Gaming A16 FA617XT,AMD Ryzen 9 7940HX,16,1024,AMD Radeon RX 7600S 8GB,Laptop Performa Tinggi,Rp21.499.000
+106,MSI,Stealth 14 Studio A13VE,Intel Core i7-13700H,16,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Kreatif/Grafis,Rp21.999.000
+107,Acer,Predator Helios Neo 16 PHN16-72,Intel Core i7-14700HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp22.499.000
+108,Lenovo,Legion Pro 5 16ARX8,AMD Ryzen 7 7745HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp22.999.000
+109,ASUS,ROG Strix G16 G614JVR,Intel Core i9-14900HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp23.999.000
+110,HP,Envy x360 16-fe0005TX,Intel Core Ultra 7 155H,16,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Kreatif/Grafis,Rp23.499.000
+111,MSI,Katana 17 B13VGK,Intel Core i7-13620H,16,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp24.499.000
+112,ASUS,Zenbook Pro 14 OLED UX6404VV,Intel Core i9-13900H,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp24.999.000
+113,Acer,Swift X 14 OLED SFX14-72G,Intel Core Ultra 7 155H,32,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp25.499.000
+114,Apple,MacBook Pro 14 M3 512GB,Apple M3 8-Core,16,512,Apple 10-Core GPU,Laptop Kreatif/Grafis,Rp25.999.000
+115,Dell,XPS 13 Plus 9320,Intel Core i7-1360P,32,1024,Intel Iris Xe Graphics,Laptop Kreatif/Grafis,Rp25.499.000
+116,Lenovo,Yoga Pro 7 14IRH8,Intel Core i7-13700H,16,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Kreatif/Grafis,Rp24.999.000
+117,ASUS,ROG Zephyrus G16 GU603VV,Intel Core i7-13620H,16,512,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp25.999.000
+118,HP,Omen Transcend 16-u0045TX,Intel Core i7-13700HX,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Performa Tinggi,Rp26.499.000
+119,ASUS,Vivobook Pro 15 OLED N6506MV,Intel Core Ultra 9 185H,24,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp27.000.000
+120,MSI,Prestige 16 AI Studio B1VFG,Intel Core Ultra 7 155H,32,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp27.499.000
+121,Lenovo,Legion Pro 5 16IRX9,Intel Core i7-14700HX,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp27.999.000
+122,Acer,Predator Helios 16 PH16-71,Intel Core i7-13700HX,16,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp28.499.000
+123,ASUS,ROG Zephyrus G14 GA402XV,AMD Ryzen 9 7940HS,16,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp28.999.000
+124,Dell,G16 7630,Intel Core i9-13900HX,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp29.499.000
+125,Apple,MacBook Pro 14 M3 Pro 512GB,Apple M3 Pro 11-Core,18,512,Apple 14-Core GPU,Laptop Kreatif/Grafis,Rp29.999.000
+126,ASUS,ProArt Studiobook 16 H5600QM,AMD Ryzen 9 5900HX,32,1024,NVIDIA GeForce RTX 3060 6GB,Laptop Kreatif/Grafis,Rp29.499.000
+127,MSI,Creator Z16 HX Studio A13VF,Intel Core i7-13700HX,32,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp30.999.000
+128,Lenovo,Legion 7i 16IRX9,Intel Core i9-14900HX,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp31.999.000
+129,ASUS,ROG Strix SCAR 16 G634JZ,Intel Core i9-13980HX,32,1024,NVIDIA GeForce RTX 4080 12GB,Laptop Performa Tinggi,Rp32.999.000
+130,HP,Omen 17-ck2011TX,Intel Core i9-13900HX,32,1024,NVIDIA GeForce RTX 4080 12GB,Laptop Performa Tinggi,Rp33.499.000
+131,Acer,Predator Helios 18 PH18-72,Intel Core i9-14900HX,32,1024,NVIDIA GeForce RTX 4080 12GB,Laptop Performa Tinggi,Rp34.499.000
+132,Apple,MacBook Pro 16 M3 Pro 512GB,Apple M3 Pro 12-Core,18,512,Apple 18-Core GPU,Laptop Kreatif/Grafis,Rp34.999.000
+133,Dell,XPS 14 9440,Intel Core Ultra 7 155H,32,1024,NVIDIA GeForce RTX 4050 6GB,Laptop Kreatif/Grafis,Rp35.499.000
+134,ASUS,ROG Zephyrus G16 GU605MI OLED,Intel Core Ultra 7 155H,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Kreatif/Grafis,Rp35.999.000
+135,MSI,Raider GE68 HX 14VGG,Intel Core i9-14900HX,32,2048,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp36.499.000
+136,Lenovo,ThinkPad P1 Gen 6,Intel Core i7-13700H,32,1024,NVIDIA RTX A1000 6GB,Laptop Kreatif/Grafis,Rp36.999.000
+137,Apple,MacBook Pro 14 M3 Pro 1TB,Apple M3 Pro 12-Core,18,1024,Apple 18-Core GPU,Laptop Kreatif/Grafis,Rp37.499.000
+138,ASUS,ROG Zephyrus M16 GU604VI,Intel Core i9-13900H,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Kreatif/Grafis,Rp37.999.000
+139,Dell,Alienware m16 R2,Intel Core Ultra 7 155H,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Performa Tinggi,Rp38.499.000
+140,Lenovo,Legion Pro 7 16IRX9H,Intel Core i9-14900HX,32,1024,NVIDIA GeForce RTX 4080 12GB,Laptop Performa Tinggi,Rp39.499.000
+141,MSI,Creator 16 AI Studio A1VGG,Intel Core Ultra 9 185H,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Kreatif/Grafis,Rp39.999.000
+142,ASUS,ROG Zephyrus G14 GA403UI OLED,AMD Ryzen AI 9 HX 370,32,1024,NVIDIA GeForce RTX 4060 8GB,Laptop Kreatif/Grafis,Rp41.000.000
+143,Dell,XPS 16 9640 OLED,Intel Core Ultra 7 155H,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Kreatif/Grafis,Rp41.999.000
+144,Apple,MacBook Pro 16 M3 Max 36GB,Apple M3 Max 14-Core,36,1024,Apple 30-Core GPU,Laptop Kreatif/Grafis,Rp42.999.000
+145,ASUS,Zenbook S 14 OLED UX5406SA,Intel Core Ultra 9 288V,32,1024,Intel Arc 140V Graphics,Laptop Kreatif/Grafis,Rp44.000.000
+146,ASUS,ROG Zephyrus G16 GA605WI OLED,AMD Ryzen AI 9 HX 370,32,1024,NVIDIA GeForce RTX 4070 8GB,Laptop Kreatif/Grafis,Rp44.500.000
+147,ASUS,ProArt P16 H7606WI 4K OLED,AMD Ryzen AI 9 HX 370,64,2048,NVIDIA GeForce RTX 4070 8GB,Laptop Kreatif/Grafis,Rp45.999.000
+148,MSI,Titan 18 HX A14VIG,Intel Core i9-14900HX,64,2048,NVIDIA GeForce RTX 4090 16GB,Laptop Performa Tinggi,Rp47.999.000
+149,Apple,MacBook Pro 16 M3 Max 48GB,Apple M3 Max 16-Core,48,1024,Apple 40-Core GPU,Laptop Kreatif/Grafis,Rp48.999.000
+150,ASUS,ROG Strix SCAR 18 G834JY,Intel Core i9-14900HX,64,2048,NVIDIA GeForce RTX 4090 16GB,Laptop Performa Tinggi,Rp49.999.000</script>
+
+<script src="expert-system.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
