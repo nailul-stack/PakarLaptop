@@ -187,7 +187,20 @@ function saveLocal() {
   } catch (e) {}
 }
 
-function recCard(l, i, rp) {
+function calcMatchPcts(top, rp) {
+  if (!top || !top.length) return [];
+  const s0 = top[0].s || 100;
+  const p0 = top[0].harga <= rp ? 97 : Math.max(75, Math.round(92 - ((top[0].harga - rp) / rp) * 60));
+  return top.map((item, i) => {
+    if (i === 0) return p0;
+    const diff = Math.max(0, s0 - (item.s || (s0 - 5 * i)));
+    const drop = Math.round(diff * 0.7) + (i * 3);
+    const budgetPen = item.harga > rp ? Math.round(((item.harga - rp) / rp) * 30) : 0;
+    return Math.max(60, Math.min(p0 - 2, p0 - drop - budgetPen));
+  });
+}
+
+function recCard(l, i, rp, pct) {
   const inBudget = l.harga <= rp, diff = Math.abs(l.harga - rp);
   const badge = i === 0 ? 'Paling sesuai' : 'Alternatif ' + (i + 1);
   const imgUrl = laptopImg(l);
@@ -195,7 +208,16 @@ function recCard(l, i, rp) {
   <div class="rec-wrap">
    <div class="rthumb">${imgUrl ? `<img src="${esc(imgUrl)}" alt="${esc(l.merek)} ${esc(l.nama)}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML=LAPTOP_SVG">` : LAPTOP_SVG}</div>
    <div class="rec-main">
-    <div class="rh"><div><span class="tag">${badge}</span><h5>${esc(l.merek)} ${esc(l.nama)}</h5></div><span class="rprice">Rp ${rp$(l.harga)}</span></div>
+    <div class="rh">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+          <span class="tag">${badge}</span>
+          ${pct ? `<span class="tag match-badge ${pct >= 90 ? 'high' : 'mid'}">${pct}% Cocok</span>` : ''}
+        </div>
+        <h5>${esc(l.merek)} ${esc(l.nama)}</h5>
+      </div>
+      <span class="rprice">Rp ${rp$(l.harga)}</span>
+    </div>
     <div class="tags"><span class="tag alt">${esc(KAT_NAME[l.kat] || l.kat)}</span><span class="tag alt">${l.ram || '?'} GB RAM</span><span class="tag alt">${stor(l.ssd)}</span></div>
     <p class="meta">${esc(l.cpu)} · ${esc(l.gpu)}</p>
     ${l.alasan ? `<div class="rec-why"><strong>Alasan:</strong> ${esc(l.alasan)}</div>` : ''}
@@ -206,8 +228,29 @@ function recCard(l, i, rp) {
 }
 
 /* ===== Inisialisasi Tampilan Form & Hasil ===== */
+const PERFORMA_DESC = {
+  rendah: '<strong>Performa Rendah:</strong> Cukup untuk mengetik dokumen (Word/Excel), browsing ringan, streaming, dan perkuliahan daring sehari-hari.',
+  sedang: '<strong>Performa Sedang:</strong> Ideal untuk pemrograman (VS Code, kompilasi ringan), desain grafis 2D, pengolahan data menengah, dan multitasking banyak tab.',
+  tinggi: '<strong>Performa Tinggi:</strong> Direkomendasikan untuk rendering 3D, editing video berat, virtual machine, pemrosesan AI/data besar, atau gaming berat.'
+};
+const PERFORMA_DEFAULT = 'Pilih salah satu tingkat performa di atas untuk melihat detail kriteria dan contoh penggunaannya.';
+
+function updatePerformaDesc() {
+  const pBox = $('#performa-description');
+  if (!pBox) return;
+  const checked = $('input[name="p"]:checked');
+  if (checked && PERFORMA_DESC[checked.value]) {
+    pBox.innerHTML = PERFORMA_DESC[checked.value];
+    pBox.classList.add('active');
+  } else {
+    pBox.innerHTML = PERFORMA_DEFAULT;
+    pBox.classList.remove('active');
+  }
+}
+
 if ($('#fields')) {
-  $('#fields').innerHTML = FIELDS.map(f => `<fieldset id="f-${f.k}"><legend>${f.label}</legend>${f.hint ? `<p class="hint">${f.hint}</p>` : ''}<div class="opts">${f.opts.map(([v, l]) => `<label><input type="radio" name="${f.k}" value="${v}"><span>${l}</span></label>`).join('')}</div><p class="err" id="err-${f.k}" role="alert"></p></fieldset>`).join('');
+  $('#fields').innerHTML = FIELDS.map(f => `<fieldset id="f-${f.k}"><legend>${f.label}</legend>${f.hint ? `<p class="hint">${f.hint}</p>` : ''}<div class="opts">${f.opts.map(([v, l]) => `<label><input type="radio" name="${f.k}" value="${v}"><span>${l}</span></label>`).join('')}</div>${f.k === 'p' ? `<div id="performa-description" class="performa-info-box" role="status" aria-live="polite">${PERFORMA_DEFAULT}</div>` : ''}<p class="err" id="err-${f.k}" role="alert"></p></fieldset>`).join('');
+  updatePerformaDesc();
 }
 
 if ($('#types')) {
@@ -228,6 +271,7 @@ function setForm(o) {
   $('#rp').value = /^\d+$/.test(String(o.rp)) ? rp$(+o.rp) : o.rp;
   FIELDS.forEach(f => $$(`input[name=${f.k}]`).forEach(i => i.checked = i.value === o[f.k]));
   lvl();
+  updatePerformaDesc();
 }
 
 function lvl() {
@@ -257,7 +301,8 @@ function go(mode) {
       const cats = o.rank.map(x => x[0]);
       const w = CAT[cats[0]], oth = o.rank.slice(1);
       const picks = pickLaptops(o.facts, o.rp, cats);
-      const list = picks.length ? picks.map((l, i) => recCard(l, i, o.rp)).join('') : '<p class="empty">Belum ada laptop pada data CSV.</p>';
+      const pcts = calcMatchPcts(picks, o.rp);
+      const list = picks.length ? picks.map((l, i) => recCard(l, i, o.rp, pcts[i])).join('') : '<p class="empty">Belum ada laptop pada data CSV.</p>';
       h = `<p class="eyebrow">Rekomendasi untukmu</p><h3>${w.name}</h3><p>${w.d}</p>
    <h4 class="h4-tight">Laptop yang cocok <span class="hint" style="font-weight:400">(dari CSV)</span></h4>
    <div class="recs">${list}</div>
@@ -285,7 +330,14 @@ if ($('#rp')) {
     if (/^\d+$/.test(s)) e.target.value = rp$(+s);
   });
 }
-if ($('#fields')) $('#fields').addEventListener('change', refresh);
+if ($('#fields')) {
+  $('#fields').addEventListener('change', e => {
+    if (e.target && e.target.name === 'p') {
+      updatePerformaDesc();
+    }
+    refresh();
+  });
+}
 
 /* ===== Daftar Laptop & Admin ===== */
 let CF = 'all', editId = null, delId = null, SHOW = 12;
@@ -329,6 +381,8 @@ function renderList(more) {
 }
 
 function renderAdmin() {
+  if (!isAdminAuthed()) return;
+  if (!$('#aq') || !$('#at')) return;
   const q = $('#aq').value.toLowerCase().trim(), f = merged().filter(r => !q || (r.merek + ' ' + r.nama).toLowerCase().includes(q)).sort((x, y) => (x.merek + x.nama).localeCompare(y.merek + y.nama));
   $('#at').innerHTML = f.slice(0, 25).map(r => {
     const u = laptopImg(r);
@@ -474,8 +528,177 @@ if ($('#wipe')) $('#wipe').onclick = () => {
 
 renderAll();
 
-/* Routing Hash */
+/* Routing Hash & Navigasi Mobile */
 const VIEWS = ['beranda', 'laptop', 'tentang', 'admin'];
+const menuBtn = $('#mobile-menu-btn');
+const mainNav = $('#main-nav');
+const themeToggleBtn = $('#theme-toggle');
+
+/* ===== Pengelolaan Tema (Dark Mode & Light Mode) ===== */
+function getSavedTheme() {
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch (e) {}
+  return 'dark'; // Default bawaan: Dark Mode
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  if (themeToggleBtn) {
+    const isDark = theme === 'dark';
+    themeToggleBtn.setAttribute('aria-label', isDark ? 'Beralih ke tema terang' : 'Beralih ke tema gelap');
+    themeToggleBtn.setAttribute('title', isDark ? 'Beralih ke tema terang' : 'Beralih ke tema gelap');
+  }
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try {
+    localStorage.setItem('theme', next);
+  } catch (e) {}
+}
+
+applyTheme(getSavedTheme());
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', toggleTheme);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme(getSavedTheme());
+});
+
+function closeMobileMenu() {
+  if (menuBtn && mainNav && mainNav.classList.contains('open')) {
+    menuBtn.classList.remove('open');
+    mainNav.classList.remove('open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+    menuBtn.setAttribute('aria-label', 'Buka menu navigasi');
+  }
+}
+
+function toggleMobileMenu() {
+  if (!menuBtn || !mainNav) return;
+  const isOpen = mainNav.classList.toggle('open');
+  menuBtn.classList.toggle('open', isOpen);
+  menuBtn.setAttribute('aria-expanded', String(isOpen));
+  menuBtn.setAttribute('aria-label', isOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+}
+
+if (menuBtn) {
+  menuBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    toggleMobileMenu();
+  });
+}
+
+if (mainNav) {
+  mainNav.addEventListener('click', e => {
+    if (e.target.closest('a')) {
+      closeMobileMenu();
+    }
+  });
+}
+
+document.addEventListener('click', e => {
+  if (mainNav && mainNav.classList.contains('open') && !e.target.closest('header')) {
+    closeMobileMenu();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeMobileMenu();
+});
+
+/* ===== Proteksi & Autentikasi Panel Admin ===== */
+function isAdminAuthed() {
+  try {
+    return sessionStorage.getItem('pakar_admin_auth') === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+function updateAdminAuthState() {
+  const authed = isAdminAuthed();
+  const authBox = $('#admin-auth');
+  const mainBox = $('#admin-main');
+  if (authBox && mainBox) {
+    authBox.style.display = authed ? 'none' : 'block';
+    mainBox.style.display = authed ? 'block' : 'none';
+  }
+  const pinInput = $('#admin-pin');
+  const errEl = $('#admin-auth-err');
+  if (!authed && pinInput) {
+    pinInput.value = '';
+    if (errEl) errEl.textContent = '';
+    setTimeout(() => {
+      if (location.hash === '#admin') pinInput.focus();
+    }, 100);
+  }
+  if (authed) {
+    renderAdmin();
+  }
+}
+
+function handleAdminLogin() {
+  const pinInput = $('#admin-pin');
+  const errEl = $('#admin-auth-err');
+  if (!pinInput) return;
+  const val = pinInput.value.trim().toLowerCase();
+  if (!val) {
+    if (errEl) errEl.textContent = 'Masukkan PIN keamanan terlebih dahulu.';
+    pinInput.focus();
+    return;
+  }
+  if (val === '1234' || val === 'kelompok7' || val === 'admin') {
+    try {
+      sessionStorage.setItem('pakar_admin_auth', '1');
+    } catch (e) {}
+    if (errEl) errEl.textContent = '';
+    updateAdminAuthState();
+  } else {
+    if (errEl) errEl.textContent = 'PIN salah. Silakan coba lagi.';
+    pinInput.select();
+    pinInput.focus();
+  }
+}
+
+function handleAdminLogout() {
+  try {
+    sessionStorage.removeItem('pakar_admin_auth');
+  } catch (e) {}
+  updateAdminAuthState();
+  location.hash = '#beranda';
+}
+
+if ($('#admin-login-form')) {
+  $('#admin-login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    handleAdminLogin();
+  });
+}
+if ($('#admin-login-btn')) {
+  $('#admin-login-btn').addEventListener('click', handleAdminLogin);
+}
+if ($('#admin-logout-btn')) {
+  $('#admin-logout-btn').addEventListener('click', handleAdminLogout);
+}
+if ($('#admin-pin-toggle')) {
+  $('#admin-pin-toggle').addEventListener('click', () => {
+    const pin = $('#admin-pin');
+    if (!pin) return;
+    const isPass = pin.type === 'password';
+    pin.type = isPass ? 'text' : 'password';
+    $('#admin-pin-toggle').innerHTML = isPass
+      ? `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+      : `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+  });
+}
+
 function route() {
   let h = location.hash.slice(1);
   const sec = ['cek', 'tipe'].includes(h) ? h : null;
@@ -483,7 +706,11 @@ function route() {
   if (!VIEWS.includes(h)) h = 'beranda';
   $$('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + h));
   $$('nav a').forEach(a => a.getAttribute('href') === '#' + h ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+  if (h === 'admin') {
+    updateAdminAuthState();
+  }
   sec ? $('#' + sec).scrollIntoView() : scrollTo(0, 0);
+  closeMobileMenu();
 }
 
 addEventListener('hashchange', route);
