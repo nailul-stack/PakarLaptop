@@ -20,7 +20,8 @@ const KV = {
   program: 'pemrograman',
   desain: 'desain/editing',
   multimedia: 'multimedia',
-  data: 'pengolahan data'
+  data: 'pengolahan data',
+  game: 'entertainment'
 };
 
 const val = (f, v) => f === 'k' ? KV[v] : (f === 't' || f === 'e') && v === 'sangat' ? 'sangat penting' : v;
@@ -29,7 +30,7 @@ const lv = [['rendah', 'Rendah'], ['sedang', 'Sedang'], ['tinggi', 'Tinggi']];
 const pen = [['biasa', 'Biasa saja'], ['cukup', 'Cukup penting'], ['sangat', 'Sangat penting']];
 
 const FIELDS = [
-  { k: 'k', label: 'Kebutuhan utama', opts: [['umum', 'Tugas kuliah umum'], ['program', 'Pemrograman'], ['desain', 'Desain/editing'], ['multimedia', 'Multimedia'], ['data', 'Pengolahan data']] },
+  { k: 'k', label: 'Kebutuhan utama', opts: [['umum', 'Tugas kuliah umum'], ['program', 'Pemrograman'], ['desain', 'Desain/editing'], ['multimedia', 'Multimedia'], ['data', 'Pengolahan data'], ['game', 'Entertainment']] },
   { k: 'p', label: 'Tingkat kebutuhan performa', opts: lv },
   { k: 't', label: 'Portabilitas', hint: 'Seberapa penting laptop ringan dan mudah dibawa ke kampus.', opts: pen },
   { k: 'e', label: 'Daya tahan baterai', hint: 'Seberapa penting memakai laptop lama tanpa sering mengisi daya.', opts: pen },
@@ -77,6 +78,16 @@ const CAT = {
       ['Grafis', 'GPU terpisah'],
       ['Layar', 'Warna akurat, sRGB penuh']
     ]
+  },
+  game: {
+    name: 'Laptop Entertainment (Gaming)',
+    d: 'Dirancang untuk bermain game, streaming hiburan, dan beban grafis/performa tinggi dengan GPU terpisah dan sistem pendingin khusus.',
+    spec: [
+      ['Prosesor', 'Core i5/i7 seri H atau Ryzen 5/7 seri H ke atas'],
+      ['RAM', '16 GB atau lebih'],
+      ['Grafis', 'NVIDIA GeForce RTX / AMD Radeon RX terpisah'],
+      ['Layar dan pendingin', 'Refresh rate tinggi (144Hz+), pendingin ganda']
+    ]
   }
 };
 
@@ -99,7 +110,13 @@ const R = [
   ['R15', { k: 'multimedia' }, 'kreatif'],
   ['R16', { p: 'tinggi' }, 'tinggi'],
   ['R17', { k: 'program' }, 'produk'],
-  ['R18', { k: 'data' }, 'produk']
+  ['R18', { k: 'data' }, 'produk'],
+  ['R19', { k: 'game', g: 'tinggi', p: 'tinggi' }, 'game'],
+  ['R20', { k: 'game', g: 'tinggi' }, 'game'],
+  ['R21', { k: 'game', p: 'tinggi' }, 'game'],
+  ['R22', { k: 'game', b: 'tinggi' }, 'game'],
+  ['R23', { k: 'game', b: 'sedang' }, 'game'],
+  ['R24', { k: 'game' }, 'game']
 ];
 
 const cond = c => Object.entries(c).map(([f, v]) => `${NAME[f]} ${val(f, v)}`);
@@ -175,9 +192,10 @@ function gpuTier(g) {
  * Penilaian / Scoring kesesuaian laptop terhadap kebutuhan & anggaran
  */
 function scoreLaptops(facts, rp, cats) {
-  const want16 = facts.p === 'tinggi' || ['desain', 'multimedia', 'data'].includes(facts.k);
-  const wantGpu = facts.g !== 'rendah' || ['desain', 'multimedia'].includes(facts.k);
+  const want16 = facts.p === 'tinggi' || ['desain', 'multimedia', 'data', 'game'].includes(facts.k);
+  const wantGpu = facts.g !== 'rendah' || ['desain', 'multimedia', 'game'].includes(facts.k);
   const creative = facts.k === 'desain' || facts.k === 'multimedia';
+  const gaming = facts.k === 'game';
 
   return merged().map(l => {
     let s = 0;
@@ -200,8 +218,13 @@ function scoreLaptops(facts, rp, cats) {
 
     s += wantGpu ? gt * 6 : (gt >= 2 ? -6 : gt === 1 ? 2 : 0);
     s += creative ? (l.ssd >= 1024 ? 8 : l.ssd >= 512 ? 4 : 0) : (l.ssd >= 512 ? 4 : 0);
-    if (facts.t === 'sangat') s += (l.kat === 'dasar' || l.kat === 'produk') ? 6 : 0;
-    if (facts.e === 'sangat') s += (l.kat === 'dasar' || l.kat === 'produk') ? 4 : 0;
+    if (gaming) {
+      s += gt >= 3 ? 32 : gt >= 2 ? 18 : gt === 1 ? 4 : -20;
+      s += ct >= 4 ? 14 : ct >= 3 ? 8 : ct >= 2 ? 4 : 0;
+      if (facts.b === 'tinggi') s += ratio * 18;
+    }
+    if (facts.t === 'sangat') s += (l.kat === 'dasar' || l.kat === 'produk') ? 6 : -4;
+    if (facts.e === 'sangat') s += (l.kat === 'dasar' || l.kat === 'produk') ? 4 : -2;
     if (facts.k === 'program') s += ct >= 2 ? 6 : 0;
     if (facts.k === 'data') s += l.ram >= 16 ? 8 : 0;
 
@@ -230,7 +253,12 @@ function getRecommendationReason(l, facts, rp) {
   const ct = cpuTier(l.cpu);
   const gt = gpuTier(l.gpu);
 
-  if (facts.k === 'desain' || facts.k === 'multimedia') {
+  if (facts.k === 'game') {
+    if (gt >= 2) reasons.push(`GPU terpisah (${l.gpu.split(' ')[0]} ${l.gpu.split(' ')[1] || ''}) sangat siap untuk gaming berat & FPS mulus`);
+    else if (gt === 1) reasons.push('Grafis memadai untuk game kasual, eSports, dan hiburan');
+    if (ct >= 3) reasons.push(`Prosesor bertenaga (${l.cpu}) menjamin performa gaming responsif tanpa lag`);
+    if (l.ram >= 16) reasons.push(`RAM ${l.ram} GB ideal untuk game modern dan streaming lancar`);
+  } else if (facts.k === 'desain' || facts.k === 'multimedia') {
     if (gt >= 2) reasons.push(`GPU terpisah (${l.gpu.split(' ')[0]} ${l.gpu.split(' ')[1] || ''}) sangat mumpuni untuk render & editing video`);
     else if (gt === 1) reasons.push('Grafis terintegrasi generasi modern untuk olah grafis dasar/menengah');
     if (l.ram >= 16) reasons.push(`RAM besar ${l.ram} GB lancar untuk multitasking software kreatif`);
