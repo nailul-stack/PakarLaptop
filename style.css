@@ -307,6 +307,103 @@ td.m{font-family:"IBM Plex Mono",monospace;font-size:.82rem}
 #out summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--accent);font-weight:600}
 #out details .spec{margin-top:4px}
 #out .h4-tight{margin-top:16px}
+
+/* Badge Rentang Harga Kategori */
+.cat-range-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 12px;
+  border-radius:999px;
+  background:var(--accent-soft);
+  color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+  font-size:.82rem;
+  font-weight:600;
+  margin:6px 0 14px;
+}
+
+/* Kotak Notifikasi Status Anggaran (Kurang & Kelebihan) */
+.budget-alert{
+  border-radius:14px;
+  padding:16px 18px;
+  margin:12px 0 16px;
+  border:1px solid var(--line);
+  font-size:.9rem;
+  line-height:1.55;
+  transition:background .2s,border-color .2s;
+}
+.budget-alert-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:1rem;
+  font-weight:700;
+  margin-bottom:8px;
+  font-family:"Bricolage Grotesque","Instrument Sans",sans-serif;
+  letter-spacing:-.01em;
+}
+.budget-alert.budget-kurang{
+  background:rgba(239,68,68,0.08);
+  border-color:rgba(239,68,68,0.35);
+  color:var(--text);
+}
+:root[data-theme="dark"] .budget-alert.budget-kurang{
+  background:rgba(248,113,113,0.1);
+  border-color:rgba(248,113,113,0.4);
+}
+.budget-alert.budget-kurang .budget-alert-header{
+  color:var(--bad);
+}
+.budget-alert.budget-kelebihan{
+  background:rgba(16,185,129,0.08);
+  border-color:rgba(16,185,129,0.35);
+  color:var(--text);
+}
+:root[data-theme="dark"] .budget-alert.budget-kelebihan{
+  background:rgba(52,211,153,0.1);
+  border-color:rgba(52,211,153,0.4);
+}
+.budget-alert.budget-kelebihan .budget-alert-header{
+  color:var(--ok);
+}
+.budget-alert-body{
+  margin:0 0 10px;
+  color:var(--text);
+  max-width:none;
+}
+.budget-advice{
+  background:var(--surface);
+  border-radius:10px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  margin-top:10px;
+  font-size:.85rem;
+}
+.budget-advice strong{
+  color:var(--text);
+  display:block;
+  margin-bottom:6px;
+}
+.budget-advice ul{
+  margin:0;
+  padding-left:18px;
+  display:grid;
+  gap:6px;
+}
+.budget-advice li{
+  color:var(--muted);
+}
+.budget-advice li strong{
+  display:inline;
+  color:var(--text);
+}
+.reference-section{
+  margin-top:20px;
+  border-top:1px solid var(--line);
+  padding-top:16px;
+}
+
 /* Footer */
 footer.site-footer{border-top:1px solid var(--line);padding:48px 0 32px;color:var(--muted);font-size:.9rem}
 .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1.2fr;gap:36px;margin-bottom:32px}

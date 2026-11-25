@@ -200,11 +200,11 @@ function calcMatchPcts(top, rp) {
   });
 }
 
-function recCard(l, i, rp, pct) {
+function recCard(l, i, rp, pct, isReference) {
   const inBudget = l.harga <= rp, diff = Math.abs(l.harga - rp);
-  const badge = i === 0 ? 'Paling sesuai' : 'Alternatif ' + (i + 1);
+  const badge = isReference ? 'Acuan Target' : (i === 0 ? 'Paling sesuai' : 'Alternatif ' + (i + 1));
   const imgUrl = laptopImg(l);
-  return `<article class="rec${i === 0 ? ' top' : ''}">
+  return `<article class="rec${i === 0 && !isReference ? ' top' : ''}">
   <div class="rec-wrap">
    <div class="rthumb">${imgUrl ? `<img src="${esc(imgUrl)}" alt="${esc(l.merek)} ${esc(l.nama)}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML=LAPTOP_SVG">` : LAPTOP_SVG}</div>
    <div class="rec-main">
@@ -221,7 +221,7 @@ function recCard(l, i, rp, pct) {
     <div class="tags"><span class="tag alt">${esc(KAT_NAME[l.kat] || l.kat)}</span><span class="tag alt">${l.ram || '?'} GB RAM</span><span class="tag alt">${stor(l.ssd)}</span></div>
     <p class="meta">${esc(l.cpu)} · ${esc(l.gpu)}</p>
     ${l.alasan ? `<div class="rec-why"><strong>Alasan:</strong> ${esc(l.alasan)}</div>` : ''}
-    <div class="sc"><span class="${inBudget ? 'b-in' : 'b-out'}">${inBudget ? (diff > 0 ? 'Rp ' + rp$(diff) + ' di bawah anggaran' : 'pas dengan anggaran') : 'Rp ' + rp$(diff) + ' di atas anggaran'}</span></div>
+    <div class="sc"><span class="${inBudget ? 'b-in' : 'b-out'}">${inBudget ? (diff > 0 ? 'Hemat Rp ' + rp$(diff) + ' (di bawah anggaran)' : 'Pas dengan anggaran') : (isReference ? 'Di atas anggaran (+Rp ' + rp$(diff) + ')' : 'Rp ' + rp$(diff) + ' di atas anggaran')}</span></div>
    </div>
   </div>
  </article>`;
@@ -301,16 +301,106 @@ function go(mode) {
       const cats = o.rank.map(x => x[0]);
       const w = CAT[cats[0]], oth = o.rank.slice(1);
       const picks = pickLaptops(o.facts, o.rp, cats);
-      const pcts = calcMatchPcts(picks, o.rp);
-      const list = picks.length ? picks.map((l, i) => recCard(l, i, o.rp, pcts[i])).join('') : '<p class="empty">Belum ada laptop pada data CSV.</p>';
-      h = `<p class="eyebrow">Rekomendasi untukmu</p><h3>${w.name}</h3><p>${w.d}</p>
-   <h4 class="h4-tight">Laptop yang cocok <span class="hint" style="font-weight:400">(dari CSV)</span></h4>
-   <div class="recs">${list}</div>
-   <p class="hint" style="margin-top:8px">${picks.note || ''} Harga dan spesifikasi diambil dari dataset CSV.</p>
-   <details><summary>Spesifikasi acuan tipe ini</summary><dl class="spec">${w.spec.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></details>
-   ${oth.length ? `<h4>Bisa juga dipertimbangkan</h4><p>${oth.map(([c]) => CAT[c].name).join(' atau ')}</p>` : ''}
-   <h4>Ringkasan kebutuhanmu</h4><ul class="chips">${facts}</ul>
-   <p class="hint" style="margin-top:14px">Harga mengikuti dataset CSV. Cocokkan lagi dengan produk terbaru sebelum membeli.</p>`;
+
+      // KONDISI 1: Budget Kurang
+      if (picks.budgetStatus === 'kurang') {
+        const diff = picks.shortfall;
+        const pcts = calcMatchPcts(picks.referenceLaptops || [], o.rp);
+        const refList = picks.referenceLaptops && picks.referenceLaptops.length
+          ? picks.referenceLaptops.map((l, i) => recCard(l, i, o.rp, pcts[i], true)).join('')
+          : '';
+
+        h = `<p class="eyebrow">Rekomendasi untukmu</p>
+<h3>${w.name}</h3>
+<p>${w.d}</p>
+
+<div class="budget-alert budget-kurang" role="alert">
+  <div class="budget-alert-header">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span>Anggaran Belum Mencukupi untuk Kategori Ini</span>
+  </div>
+  <p class="budget-alert-body">
+    Berdasarkan kebutuhanmu, kamu memerlukan <strong>${w.name}</strong>. Anggaran yang kamu masukkan (<strong>Rp ${rp$(o.rp)}</strong>) masih kurang sekitar <strong>Rp ${rp$(diff)}</strong>${picks.actualShortfall && picks.actualShortfall !== diff ? ` (atau sekitar Rp ${rp$(picks.actualShortfall)} terhadap model terdekat di dataset)` : ''}.
+  </p>
+  <div class="budget-advice">
+    <strong>Saran Sistem Pakar:</strong>
+    <ul>
+      <li><strong>Laptop di bawah harga kategori tidak ditampilkan:</strong> Laptop dengan harga di bawah spesifikasi acuan kategori (seperti prosesor Celeron atau spek dasar) sengaja tidak ditampilkan karena tidak akan mampu memenuhi tuntutan komputasi/grafis untuk kebutuhan <em>${val('k', o.facts.k)}</em>.</li>
+      <li><strong>Tingkatkan Anggaran:</strong> Pertimbangkan untuk menambah anggaran minimal mencapai kisaran <strong>Rp ${rp$(w.minPrice)}</strong> agar mendapatkan perangkat yang mumpuni.</li>
+      <li><strong>Sesuaikan Kebutuhan:</strong> Jika anggaran Rp ${rp$(o.rp)} bersifat tetap, pertimbangkan menyesuaikan pilihan kebutuhan atau tingkat performa ke kategori yang lebih terjangkau.</li>
+    </ul>
+  </div>
+</div>
+
+${refList ? `
+<div class="reference-section">
+  <h4 class="h4-tight">Laptop Acuan ${w.name} Terdekat <span class="hint" style="font-weight:400">(Sebagai Target Anggaran)</span></h4>
+  <p class="hint">Model acuan terdekat dalam kategori ${w.name} yang ada di dataset sebagai gambaran target anggaran:</p>
+  <div class="recs">${refList}</div>
+</div>` : ''}
+
+<details><summary>Spesifikasi acuan tipe ini</summary><dl class="spec">${w.spec.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></details>
+${oth.length ? `<h4>Bisa juga dipertimbangkan</h4><p>${oth.map(([c]) => CAT[c].name).join(' atau ')}</p>` : ''}
+<h4>Ringkasan kebutuhanmu</h4><ul class="chips">${facts}</ul>`;
+      } else if (picks.budgetStatus === 'kelebihan') {
+        // KONDISI 2: Budget Kelebihan
+        const excess = picks.excess;
+        const pcts = calcMatchPcts(picks, o.rp);
+        const list = picks.length ? picks.map((l, i) => recCard(l, i, o.rp, pcts[i])).join('') : '<p class="empty">Belum ada laptop pada data CSV.</p>';
+
+        h = `<p class="eyebrow">Rekomendasi untukmu</p>
+<h3>${w.name}</h3>
+<p>${w.d}</p>
+
+<div class="budget-alert budget-kelebihan" role="status">
+  <div class="budget-alert-header">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span>Anggaran Melebihi Kebutuhan (Budget Kelebihan Sekitar Rp ${rp$(excess)})</span>
+  </div>
+  <p class="budget-alert-body">
+    Untuk kebutuhan <strong>${val('k', o.facts.k)}</strong>, kamu cukup memilih <strong>${w.name}</strong>. Anggaranmu sebesar <strong>Rp ${rp$(o.rp)}</strong> sangat leluasa dan melebihi kebutuhan riil.
+  </p>
+  <div class="budget-advice">
+    <strong>Penjelasan & Saran Pakar:</strong>
+    <ul>
+      <li><strong>Tetap Hemat:</strong> Kamu <strong>tidak perlu menghabiskan seluruh anggaran Rp ${rp$(o.rp)}</strong>. Laptop di bawah ini adalah pilihan terbaik dalam rentang kategori yang sudah sangat memadai dan responsif untuk tugas kuliahmu.</li>
+      <li><strong>Hemat Sekitar Rp ${rp$(excess)}:</strong> Sisa anggaran yang cukup besar ini dapat kamu simpan atau dialokasikan untuk kebutuhan perkuliahan lain atau aksesoris laptop (mouse, tas, monitor eksternal).</li>
+      <li><strong>Pilihan Rasional:</strong> Membeli laptop performa ekstrem yang terlalu mahal untuk kebutuhan perkuliahan sederhana justru membuat laptop lebih berat dibawa dan baterai lebih boros.</li>
+    </ul>
+  </div>
+</div>
+
+<h4 class="h4-tight">Rekomendasi Laptop Terbaik Sesuai Kategori <span class="hint" style="font-weight:400">(dari CSV)</span></h4>
+<div class="recs">${list}</div>
+<p class="hint" style="margin-top:8px">${picks.note || ''} Harga dan spesifikasi diambil dari dataset CSV.</p>
+<details><summary>Spesifikasi acuan tipe ini</summary><dl class="spec">${w.spec.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></details>
+${oth.length ? `<h4>Bisa juga dipertimbangkan</h4><p>${oth.map(([c]) => CAT[c].name).join(' atau ')}</p>` : ''}
+<h4>Ringkasan kebutuhanmu</h4><ul class="chips">${facts}</ul>
+<p class="hint" style="margin-top:14px">Harga mengikuti dataset CSV. Cocokkan lagi dengan produk terbaru sebelum membeli.</p>`;
+      } else {
+        // KONDISI 3: Normal (Dalam Rentang Harga)
+        const pcts = calcMatchPcts(picks, o.rp);
+        const list = picks.length ? picks.map((l, i) => recCard(l, i, o.rp, pcts[i])).join('') : '<p class="empty">Belum ada laptop pada data CSV.</p>';
+
+        h = `<p class="eyebrow">Rekomendasi untukmu</p>
+<h3>${w.name}</h3>
+<p>${w.d}</p>
+
+<h4 class="h4-tight">Laptop yang cocok <span class="hint" style="font-weight:400">(dari CSV)</span></h4>
+<div class="recs">${list}</div>
+<p class="hint" style="margin-top:8px">${picks.note || ''} Harga dan spesifikasi diambil dari dataset CSV.</p>
+<details><summary>Spesifikasi acuan tipe ini</summary><dl class="spec">${w.spec.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></details>
+${oth.length ? `<h4>Bisa juga dipertimbangkan</h4><p>${oth.map(([c]) => CAT[c].name).join(' atau ')}</p>` : ''}
+<h4>Ringkasan kebutuhanmu</h4><ul class="chips">${facts}</ul>
+<p class="hint" style="margin-top:14px">Harga mengikuti dataset CSV. Cocokkan lagi dengan produk terbaru sebelum membeli.</p>`;
+      }
     }
   }
   box.innerHTML = h;
